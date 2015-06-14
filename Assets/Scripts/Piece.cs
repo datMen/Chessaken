@@ -9,6 +9,9 @@ public class Piece : MonoBehaviour {
     [SerializeField]
     private string name;
 
+    [SerializeField]
+    private int direction;
+
     private List<Coordinate> allowed_moves = new List<Coordinate>();
 
     void Start() {
@@ -32,6 +35,10 @@ public class Piece : MonoBehaviour {
         }
     }
 
+    public void updatePosition() {
+
+    }
+
     public bool checkValidMove(int coor_x, int coor_y) {
         for (int i = 0; i < allowed_moves.Count ; i++) {
             if (coor_x == allowed_moves[i].x && coor_y == allowed_moves[i].y) return true;
@@ -42,7 +49,7 @@ public class Piece : MonoBehaviour {
     private void addAllowedMove(int coor_x, int coor_y) {
         Coordinate new_move = new Coordinate(coor_x, coor_y);
         allowed_moves.Add(new_move);
-        Debug.Log(name + ": " + coor_x + ',' + coor_y);
+        // Debug.Log(name + ": " + coor_x + ',' + coor_y);
     }
 
     private void addPawnAllowedMoves() {
