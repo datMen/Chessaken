@@ -9,63 +9,70 @@ public class Piece : MonoBehaviour {
     [SerializeField]
     private string name;
 
-    [System.Serializable]
-    public class Move {  public int[] move = new int[2]; };
-    [SerializeField] 
-    public List<Move> allowed_moves;
+    private List<Coordinate> allowed_moves = new List<Coordinate>();
 
     void Start() {
+        // Initialize valid moves
         switch (name) {
+            case "Pawn":
+                addPawnAllowedMoves();
+                break;
             case "Tower":
-                setupTowerAllowedMoves();
+                addTowerAllowedMoves();
                 break;
             case "Horse":
-                setupHorseAllowedMoves();
+                addHorseAllowedMoves();
                 break;
             case "Bishop":
-                setupBishopAllowedMoves();
+                addBishopAllowedMoves();
                 break;
             case "King":
-                setupKingAllowedMoves();
+                addKingAllowedMoves();
                 break;
         }
     }
 
-    public bool checkValidMove(int[] move) {
+    public bool checkValidMove(int coor_x, int coor_y) {
         for (int i = 0; i < allowed_moves.Count ; i++) {
-            if (move[0] == allowed_moves[i].move[0] && move[1] == allowed_moves[i].move[1]) return true;
+            if (coor_x == allowed_moves[i].x && coor_y == allowed_moves[i].y) return true;
         }
         return false;
     }
 
-    private void addAllowedMove(int[] move) {
-        Move new_move = new Move();
-        new_move.move = move;
+    private void addAllowedMove(int coor_x, int coor_y) {
+        Coordinate new_move = new Coordinate(coor_x, coor_y);
         allowed_moves.Add(new_move);
-        Debug.Log(name + ": " + move[0] + ',' + move[1]);
+        Debug.Log(name + ": " + coor_x + ',' + coor_y);
     }
 
-    private void setupTowerAllowedMoves() {
-        for (int i = 1; i < 8; i++) {
-            addAllowedMove(new int[] {i, 0});
-            addAllowedMove(new int[] {0, i});
+    private void addPawnAllowedMoves() {
+        addAllowedMove(0, 1);
+        addAllowedMove(0, 2);
+        addAllowedMove(1, 1);
+        addAllowedMove(1, -1);
+    }
+
+    private void addTowerAllowedMoves() {
+        for (int coor_x = 1; coor_x < 8; coor_x++) {
+            addAllowedMove(coor_x, 0);
+            addAllowedMove(0, coor_x);
         }
     }
 
-    private void setupBishopAllowedMoves() {
-        for (int i = 1; i < 8; i++) {
-            addAllowedMove(new int[] {i, -i});
+    private void addBishopAllowedMoves() {
+        for (int coor_x = 1; coor_x < 8; coor_x++) {
+            addAllowedMove(coor_x, -coor_x);
         }
     }
 
-    private void setupHorseAllowedMoves() {
-        for (int i = 1; i < 3; i++) {
-            for (int j = 1; j < 3; j++) {
-                if (j != i) {
-                    addAllowedMove(new int[] {i, j});
-                    addAllowedMove(new int[] {-i, -j});
-                    addAllowedMove(new int[] {i, -j});
-                    addAllowedMove(new int[] {-i, j});
+    private void addHorseAllowedMoves() {
+        for (int coor_x = 1; coor_x < 3; coor_x++) {
+            for (int coor_y = 1; coor_y < 3; coor_y++) {
+                if (coor_y != coor_x) {
+                    addAllowedMove(coor_x, coor_y);
+                    addAllowedMove(-coor_x, -coor_y);
+                    addAllowedMove(coor_x, -coor_y);
+                    addAllowedMove(-coor_x, coor_y);
                 }
             }
         }
@@ -73,13 +80,13 @@ public class Piece : MonoBehaviour {
 
     // @FIXME: King allowed positions algorithm
     // [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]
-    private void setupKingAllowedMoves() {
-        // for (int i = 0; i < 2; i++) {
-        //     for (int j = 0; j < 2; j++) {
-        //         addAllowedMove(new int[] {i, j});
-        //         addAllowedMove(new int[] {-i, -j});
-        //         addAllowedMove(new int[] {i, -j});
-        //         addAllowedMove(new int[] {-i, j});
+    private void addKingAllowedMoves() {
+        // for (int coor_x = 0; coor_x < 2; coor_x++) {
+        //     for (int coor_y = 0; coor_y < 2; coor_y++) {
+        //         addAllowedMove(coor_x, coor_y);
+        //         addAllowedMove(-coor_x, -coor_y);
+        //         addAllowedMove(coor_x, -coor_y);
+        //         addAllowedMove(-coor_x, coor_y);
         //     }
         // }
     }
