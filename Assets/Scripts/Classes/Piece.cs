@@ -4,12 +4,10 @@ using System.Collections.Generic;
 using System;
 
 
-public class Piece : MonoBehaviour, PieceContext {
-    private List<PieceState> states;
-    private PieceState cur_state;
-    private PieceStateId cur_state_id;
-
+public class Piece : MonoBehaviour {
     private List<Coordinate> allowed_moves = new List<Coordinate>();
+    private Coordinate cur_coor;
+    private bool started;
 
     [SerializeField]
     private string name;
@@ -18,8 +16,6 @@ public class Piece : MonoBehaviour, PieceContext {
     private int direction;
 
     void Start() {
-        startStates();
-        startState();
         // Initialize valid moves
         switch (name) {
             case "Pawn":
@@ -40,35 +36,31 @@ public class Piece : MonoBehaviour, PieceContext {
         }
     }
 
-    void Update () {
-        if (cur_state != null) cur_state.onUpdate();
-    }
+    public void movePiece(Coordinate coor) {
+        // if (start_position) {
+        //     cur_coor = coor;
+        //     start_position = false;
+        //     return;
+        // }
 
-    public void updateState(PieceStateId state) {
-        cur_state.onLeave();
-        cur_state = states[(int)state];
-        cur_state.onEnter();
-        cur_state_id = state;
-    }
+        int coor_x = (coor.x - cur_coor.x) * direction;
+        int coor_y = (coor.y - cur_coor.y) * direction;
 
-    void startState() {
-        cur_state_id = PieceStateId.StandStill;
-        cur_state = states[(int)cur_state_id];
-        cur_state.onEnter();
-    }
-
-    void startStates() {
-        string[] state_ids = Enum.GetNames(typeof(PieceStateId));
-        states = new List<PieceState>();
-        for (int i = 0; i < state_ids.Length ; i++) {
-            object[] param = new [] { this };
-            PieceState parsedState = Activator.CreateInstance( Type.GetType(state_ids[i], true), param) as PieceState;
-            states.Add(parsedState);
+        if (checkValidMove(coor_x, coor_y)) {
+            cur_coor = coor;
         }
+        else {
+            Debug.Log("YOU CANT MOVE THERE: x:" + coor_x + " y: " + coor_y);
+        }
+
+        transform.position = new Vector3(cur_coor.pos.x, transform.position.y, cur_coor.pos.z);
     }
 
-    public PieceStateId getCurStateId() {
-        return cur_state_id;
+    public void setStartCoor(Coordinate coor) {
+        if (!started) {
+            cur_coor = coor;
+            started = true;
+        }
     }
 
     public bool checkValidMove(int coor_x, int coor_y) {
@@ -95,12 +87,17 @@ public class Piece : MonoBehaviour, PieceContext {
         for (int coor_x = 1; coor_x < 8; coor_x++) {
             addAllowedMove(coor_x, 0);
             addAllowedMove(0, coor_x);
+            addAllowedMove(-coor_x, 0);
+            addAllowedMove(0, -coor_x);
         }
     }
 
     private void addBishopAllowedMoves() {
         for (int coor_x = 1; coor_x < 8; coor_x++) {
             addAllowedMove(coor_x, -coor_x);
+            addAllowedMove(-coor_x, coor_x);
+            addAllowedMove(coor_x, coor_x);
+            addAllowedMove(-coor_x, -coor_x);
         }
     }
 
@@ -128,13 +125,5 @@ public class Piece : MonoBehaviour, PieceContext {
         //         addAllowedMove(-coor_x, coor_y);
         //     }
         // }
-    }
-
-    public void startStandStill() {
-        cur_state.startStandStill();
-    }
-
-    public void startMoving() {
-        cur_state.startMoving();
     }
 }
