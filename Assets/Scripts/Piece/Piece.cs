@@ -9,12 +9,13 @@ public class Piece : MonoBehaviour, PieceContext {
     private PieceState cur_state;
     private PieceStateId cur_state_id;
 
+    private List<Coordinate> allowed_moves = new List<Coordinate>();
+
     [SerializeField]
     private string name;
 
     [SerializeField]
     private int direction;
-    private List<Coordinate> allowed_moves = new List<Coordinate>();
 
     void Start() {
         startStates();
