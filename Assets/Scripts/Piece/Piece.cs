@@ -4,17 +4,21 @@ using System.Collections.Generic;
 using System;
 
 
-public class Piece : MonoBehaviour {
+public class Piece : MonoBehaviour, PieceContext {
+    private List<PieceState> states;
+    private PieceState cur_state;
+    private PieceStateId cur_state_id;
 
     [SerializeField]
     private string name;
 
     [SerializeField]
     private int direction;
-
     private List<Coordinate> allowed_moves = new List<Coordinate>();
 
     void Start() {
+        startStates();
+        startState();
         // Initialize valid moves
         switch (name) {
             case "Pawn":
@@ -35,8 +39,35 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    public void updatePosition() {
+    void Update () {
+        if (cur_state != null) cur_state.onUpdate();
+    }
 
+    public void updateState(PieceStateId state) {
+        cur_state.onLeave();
+        cur_state = states[(int)state];
+        cur_state.onEnter();
+        cur_state_id = state;
+    }
+
+    void startState() {
+        cur_state_id = PieceStateId.StandStill;
+        cur_state = states[(int)cur_state_id];
+        cur_state.onEnter();
+    }
+
+    void startStates() {
+        string[] state_ids = Enum.GetNames(typeof(PieceStateId));
+        states = new List<PieceState>();
+        for (int i = 0; i < state_ids.Length ; i++) {
+            object[] param = new [] { this };
+            PieceState parsedState = Activator.CreateInstance( Type.GetType(state_ids[i], true), param) as PieceState;
+            states.Add(parsedState);
+        }
+    }
+
+    public PieceStateId getCurStateId() {
+        return cur_state_id;
     }
 
     public bool checkValidMove(int coor_x, int coor_y) {
@@ -96,5 +127,13 @@ public class Piece : MonoBehaviour {
         //         addAllowedMove(-coor_x, coor_y);
         //     }
         // }
+    }
+
+    public void startStandStill() {
+        cur_state.startStandStill();
+    }
+
+    public void startMoving() {
+        cur_state.startMoving();
     }
 }

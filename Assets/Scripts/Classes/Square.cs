@@ -6,8 +6,7 @@ public class Square : MonoBehaviour {
 
     void OnTriggerEnter(Collider col) {
         if (col.tag == "Piece") {
-            Debug.Log("object message");
-            col.GetComponent<Piece>().updatePosition();
+            // col.GetComponent<Piece>().updatePosition();
         }
     }
 }
