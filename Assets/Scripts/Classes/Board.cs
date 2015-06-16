@@ -5,6 +5,9 @@ using System;
 
 public class Board : MonoBehaviour {
     private bool started;
+    private List<Piece> pieces = new List<Piece>();
+    private List<Square> hovered_squares = new List<Square>();
+    private Square closest_square;
 
     [SerializeField]
     List<Square> squares = new List<Square>();
@@ -12,9 +15,9 @@ public class Board : MonoBehaviour {
     [SerializeField]
     Material square_hover_mat;
 
-    void Start() {
-        // addSquareCoordinates();
-    }
+    [SerializeField]
+    Material square_closest_mat;
+
     void Update() {
         if (!started) {
             int i;
@@ -25,6 +28,7 @@ public class Board : MonoBehaviour {
             }
             if (i == squares.Count) {
                 addSquareCoordinates();
+                setStartPieceCoor();
                 started = true;
             }
         }
@@ -45,6 +49,7 @@ public class Board : MonoBehaviour {
 
         for (int i = 0; i < squares.Count ; i++) {
             float distance = Vector3.Distance(pos, squares[i].coor.pos);
+
             if (distance < closest) {
                 coor = squares[i].coor;
                 closest = distance;
@@ -53,19 +58,41 @@ public class Board : MonoBehaviour {
         return coor;
     }
 
-    public void hoverSquare(Coordinate coor) {
-        // GameObject square = getSquareFromCoordinate(coor);
-
-        // square.renderer.material = square_hover_mat;
+    public void hoverClosestSquare(Square square) {
+        if (closest_square) closest_square.resetMaterial();
+        square.setMaterial(square_closest_mat);
+        closest_square = square;
     }
 
-    private Square getSquareFromCoordinate(Coordinate coor) {
+    public void hoverValidSquares(Vector3 pos, Piece piece) {
+        for (int i = 0; i < squares.Count ; i++) {
+            int[] move = piece.getMove(squares[i].coor);
+
+            if (piece.checkValidMove(move[0], move[1])) {
+                squares[i].setMaterial(square_hover_mat);
+                hovered_squares.Add(squares[i]);
+            }
+        }
+    }
+
+    public void resetHoveredSquares() {
+        for (int i = 0; i < hovered_squares.Count ; i++) {
+            hovered_squares[i].resetMaterial();
+        }
+        closest_square.resetMaterial();
+    }
+
+    public Square getSquareFromCoordinate(Coordinate coor) {
         for (int i = 0; i < squares.Count ; i++) {
             if (squares[i].coor.x == coor.x && squares[i].coor.y == coor.y) {
                 return squares[i];
             }
         }
         return new Square();
+    }
+
+    public void addPiece(Piece piece) {
+        pieces.Add(piece);
     }
 
     private void addSquareCoordinates() {
@@ -83,6 +110,14 @@ public class Board : MonoBehaviour {
             else {
                 coor_y++;
             }
+        }
+    }
+
+    private void setStartPieceCoor() {
+        for (int i = 0; i < pieces.Count ; i++) {
+            Coordinate closest_square = getClosestSquare(pieces[i].transform.position);
+            // getSquareFromCoordinate(closest_square).setMaterial(square_hover_mat);
+            pieces[i].setStartCoor(closest_square);
         }
     }
 }

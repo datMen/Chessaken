@@ -7,6 +7,10 @@ class DragAndDrop : MonoBehaviour {
 
     [SerializeField]
     private Board board;
+
+    void Start() {
+        board.addPiece(GetComponent<Piece>());
+    }
  
     void OnMouseDown() {
         distance = Vector3.Distance(transform.position, Camera.main.transform.position);
@@ -16,6 +20,7 @@ class DragAndDrop : MonoBehaviour {
     void OnMouseUp() {
         Coordinate closest_square = board.getClosestSquare(transform.position);
         GetComponent<Piece>().movePiece(closest_square);
+        board.resetHoveredSquares();
         dragging = false;
     }
  
@@ -25,8 +30,9 @@ class DragAndDrop : MonoBehaviour {
             Vector3 rayPoint = ray.GetPoint(distance);
             transform.position = new Vector3(rayPoint.x - 0.5f, 2.5f, rayPoint.z - 0.7f);
 
-            // Coordinate closest_square = board.getClosestSquare(transform.position);
-            // board.hoverSquare(closest_square);
+            Square closest_square = board.getSquareFromCoordinate(board.getClosestSquare(transform.position));
+            board.hoverValidSquares(transform.position, GetComponent<Piece>());
+            board.hoverClosestSquare(closest_square);
         }
     }
 }

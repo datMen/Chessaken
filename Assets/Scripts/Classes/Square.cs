@@ -4,19 +4,22 @@ using System.Collections;
 public class Square : MonoBehaviour {
     public Coordinate coor;
     public Vector3 position;
+    private Material start_mat;
 
     [SerializeField]
     public Board board;
 
     void Start() {
-        position = transform.position;
         coor = board.getSquareCoordinate(transform.position);
+        position = transform.position;
+        start_mat = renderer.material;
     }
 
-    void OnTriggerEnter(Collider col) {
-        if (col.tag == "Piece") {
-            // Debug.Log("x: " + coor.x + " y: " + coor.y + " pos: " + coor.pos);
-            col.GetComponent<Piece>().setStartCoor(coor);
-        }
+    public void setMaterial(Material mat) {
+        renderer.material = mat;
+    }
+
+    public void resetMaterial() {
+        renderer.material = start_mat;
     }
 }
