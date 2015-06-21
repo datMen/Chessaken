@@ -8,7 +8,7 @@ public class Piece : MonoBehaviour {
     private List<Move> allowed_moves = new List<Move>();
     private Square cur_square;
     private bool started;
-    private List<Coordinate> break_directions = new List<Coordinate>();
+    private List<Coordinate> break_points = new List<Coordinate>();
 
     [SerializeField]
     private string piece_name;
@@ -49,7 +49,7 @@ public class Piece : MonoBehaviour {
             if (!started) started = true;
         }
 
-        break_directions.Clear();
+        break_points.Clear();
         transform.position = new Vector3(cur_square.coor.pos.x, transform.position.y, cur_square.coor.pos.z);
         transform.rotation = new Quaternion(0, 0, 0, 0);
     }
@@ -72,11 +72,9 @@ public class Piece : MonoBehaviour {
                 switch (allowed_moves[j].type) {
                     case MoveType.StartOnly:
                     case MoveType.Move:
-                        if (square.holding_piece != null) break_directions.Add(coor_move);
-                        break;
                     case MoveType.Eat:
                     case MoveType.EatMove:
-                        if (square.holding_piece != null && square.holding_piece.team == team) break_directions.Add(coor_move);
+                        if (square.holding_piece != null) break_points.Add(coor_move);
                         break;
                 }
             }
@@ -119,53 +117,53 @@ public class Piece : MonoBehaviour {
     private bool checkCanMove(Square square) {
         Coordinate coor_move = getCoordinateMove(square);
 
-        if (square.holding_piece == null && checkMoveDirection(coor_move)) return true;
+        if (square.holding_piece == null && checkBreakPoint(coor_move)) return true;
         return false;
     }
 
     private bool checkCanEat(Square square) {
         Coordinate coor_move = getCoordinateMove(square);
 
-        if (square.holding_piece != null && square.holding_piece.team != team && checkMoveDirection(coor_move)) return true;
+        if (square.holding_piece != null && square.holding_piece.team != team && checkBreakPoint(coor_move)) return true;
         return false;
     }
 
     private bool checkCanEatMove(Square square) {
-        if (!checkCanEat(square) && checkCanMove(square)) return true; 
+        if (checkCanEat(square) || checkCanMove(square)) return true; 
         return false;
     }
 
-    private bool checkMoveDirection(Coordinate coor) {
-        for (int i = 0; i < break_directions.Count; i++) {
-            if (break_directions[i].x == 0 && coor.x == 0){
-                if (break_directions[i].y < 0 && (coor.y < break_directions[i].y)) {
+    private bool checkBreakPoint(Coordinate coor) {
+        for (int i = 0; i < break_points.Count; i++) {
+            if (break_points[i].x == 0 && coor.x == 0){
+                if (break_points[i].y < 0 && (coor.y < break_points[i].y)) {
                     return false;
                 }
-                else if (break_directions[i].y > 0 && (coor.y > break_directions[i].y)) {
-                    return false;
-                }
-            }
-            else if (break_directions[i].y == 0 && coor.y == 0){
-                if (break_directions[i].x > 0 && (coor.x > break_directions[i].x)) {
-                    return false;
-                }
-                else if (break_directions[i].x < 0 && (coor.x < break_directions[i].x)) {
+                else if (break_points[i].y > 0 && (coor.y > break_points[i].y)) {
                     return false;
                 }
             }
-            else if (break_directions[i].y > 0 && (coor.y > break_directions[i].y)) {
-                if (break_directions[i].x > 0 && (coor.x > break_directions[i].x)) {
+            else if (break_points[i].y == 0 && coor.y == 0){
+                if (break_points[i].x > 0 && (coor.x > break_points[i].x)) {
                     return false;
                 }
-                else if (break_directions[i].x < 0 && (coor.x < break_directions[i].x)) {
+                else if (break_points[i].x < 0 && (coor.x < break_points[i].x)) {
                     return false;
                 }
             }
-            else if (break_directions[i].y < 0 && (coor.y < break_directions[i].y)){
-                if (break_directions[i].x > 0 && (coor.x > break_directions[i].x)) {
+            else if (break_points[i].y > 0 && (coor.y > break_points[i].y)) {
+                if (break_points[i].x > 0 && (coor.x > break_points[i].x)) {
                     return false;
                 }
-                else if (break_directions[i].x < 0 && (coor.x < break_directions[i].x)) {
+                else if (break_points[i].x < 0 && (coor.x < break_points[i].x)) {
+                    return false;
+                }
+            }
+            else if (break_points[i].y < 0 && (coor.y < break_points[i].y)){
+                if (break_points[i].x > 0 && (coor.x > break_points[i].x)) {
+                    return false;
+                }
+                else if (break_points[i].x < 0 && (coor.x < break_points[i].x)) {
                     return false;
                 }
             }
