@@ -4,12 +4,13 @@ using UnityEngine;
 class DragAndDrop : MonoBehaviour {
     private bool dragging = false;
     private float distance;
+    private Piece this_piece;
 
     [SerializeField]
     private Board board;
 
     void Start() {
-        board.addPiece(GetComponent<Piece>());
+        this_piece = GetComponent<Piece>();
     }
  
     void OnMouseDown() {
@@ -18,8 +19,8 @@ class DragAndDrop : MonoBehaviour {
     }
  
     void OnMouseUp() {
-        Coordinate closest_square = board.getClosestSquare(transform.position);
-        GetComponent<Piece>().movePiece(closest_square);
+        Square closest_square = board.getClosestSquare(transform.position);
+        this_piece.movePiece(closest_square);
         board.resetHoveredSquares();
         dragging = false;
     }
@@ -30,7 +31,7 @@ class DragAndDrop : MonoBehaviour {
             Vector3 rayPoint = ray.GetPoint(distance);
             transform.position = new Vector3(rayPoint.x - 0.5f, 2.5f, rayPoint.z - 0.7f);
 
-            Square closest_square = board.getSquareFromCoordinate(board.getClosestSquare(transform.position));
+            Square closest_square = board.getClosestSquare(transform.position);
             board.hoverValidSquares(transform.position, GetComponent<Piece>());
             board.hoverClosestSquare(closest_square);
         }

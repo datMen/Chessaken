@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System;
 
 public class Board : MonoBehaviour {
-    private bool started;
-    private List<Piece> pieces = new List<Piece>();
     private List<Square> hovered_squares = new List<Square>();
     private Square closest_square;
 
@@ -13,49 +11,41 @@ public class Board : MonoBehaviour {
     List<Square> squares = new List<Square>();
 
     [SerializeField]
+    List<Piece> pieces = new List<Piece>();
+
+    [SerializeField]
     Material square_hover_mat;
 
     [SerializeField]
     Material square_closest_mat;
 
-    void Update() {
-        if (!started) {
-            int i;
-            for (i = 0; i < squares.Count ; i++) {
-                if (squares[i].position == new Vector3(0,0,0)) {
-                    break;
-                }
-            }
-            if (i == squares.Count) {
-                addSquareCoordinates();
-                setStartPieceCoor();
-                started = true;
-            }
-        }
+    void Start() {
+        addSquareCoordinates();
+        setStartPiecesCoor();
     }
 
     public Coordinate getSquareCoordinate(Vector3 pos) {
         for (int i = 0; i < squares.Count ; i++) {
-            if (squares[i].position == pos) {
+            if (squares[i].transform.position == pos) {
                 return squares[i].coor;
             }
         }
         return new Coordinate(0, 0);
     }
 
-    public Coordinate getClosestSquare(Vector3 pos) {
-        Coordinate coor = squares[0].coor;
+    public Square getClosestSquare(Vector3 pos) {
+        Square square = squares[0];
         float closest = Vector3.Distance(pos, squares[0].coor.pos);
 
         for (int i = 0; i < squares.Count ; i++) {
             float distance = Vector3.Distance(pos, squares[i].coor.pos);
 
             if (distance < closest) {
-                coor = squares[i].coor;
+                square = squares[i];
                 closest = distance;
             }
         }
-        return coor;
+        return square;
     }
 
     public void hoverClosestSquare(Square square) {
@@ -65,13 +55,18 @@ public class Board : MonoBehaviour {
     }
 
     public void hoverValidSquares(Vector3 pos, Piece piece) {
+        addPieceBreakPoints(piece);
         for (int i = 0; i < squares.Count ; i++) {
-            int[] move = piece.getMove(squares[i].coor);
-
-            if (piece.checkValidMove(move[0], move[1])) {
+            if (piece.checkValidMove(squares[i])) {
                 squares[i].setMaterial(square_hover_mat);
                 hovered_squares.Add(squares[i]);
             }
+        }
+    }
+
+    public void addPieceBreakPoints(Piece piece) {
+        for (int i = 0; i < squares.Count ; i++) {
+            piece.addBreakPoint(squares[i]);
         }
     }
 
@@ -83,25 +78,21 @@ public class Board : MonoBehaviour {
     }
 
     public Square getSquareFromCoordinate(Coordinate coor) {
+        Square square = squares[0];
         for (int i = 0; i < squares.Count ; i++) {
             if (squares[i].coor.x == coor.x && squares[i].coor.y == coor.y) {
                 return squares[i];
             }
         }
-        return new Square();
-    }
-
-    public void addPiece(Piece piece) {
-        pieces.Add(piece);
+        return square;
     }
 
     private void addSquareCoordinates() {
         int coor_x = 0;
         int coor_y = 0;
         for (int i = 0; i < squares.Count ; i++) {
-            squares[i].coor.x = coor_x;
-            squares[i].coor.y = coor_y;
-            squares[i].coor.pos = new Vector3(squares[i].position.x - 0.5f, squares[i].position.y, squares[i].position.z - 0.5f);
+            squares[i].coor = new Coordinate(coor_x, coor_y);
+            squares[i].coor.pos = new Vector3(squares[i].transform.position.x - 0.5f, squares[i].transform.position.y, squares[i].transform.position.z - 0.5f);
 
             if (coor_y > 0 && coor_y % 7 == 0) {
                 coor_x++;
@@ -113,11 +104,11 @@ public class Board : MonoBehaviour {
         }
     }
 
-    private void setStartPieceCoor() {
+    private void setStartPiecesCoor() {
         for (int i = 0; i < pieces.Count ; i++) {
-            Coordinate closest_square = getClosestSquare(pieces[i].transform.position);
-            // getSquareFromCoordinate(closest_square).setMaterial(square_hover_mat);
-            pieces[i].setStartCoor(closest_square);
+            Square closest_square = getClosestSquare(pieces[i].transform.position);
+            closest_square.holding_piece = pieces[i];
+            pieces[i].setStartSquare(closest_square);
         }
     }
 }

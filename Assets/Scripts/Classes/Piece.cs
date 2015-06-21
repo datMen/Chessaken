@@ -6,18 +6,19 @@ using System;
 
 public class Piece : MonoBehaviour {
     private List<Move> allowed_moves = new List<Move>();
-    private Coordinate cur_coor;
+    private Square cur_square;
     private bool started;
+    private List<Coordinate> break_directions = new List<Coordinate>();
 
     [SerializeField]
-    private string name;
+    private string piece_name;
 
     [SerializeField]
     private int team; // Whites = -1, Blacks = 1
 
     void Start() {
         // Initialize valid moves
-        switch (name) {
+        switch (piece_name) {
             case "Pawn":
                 addPawnAllowedMoves();
                 break;
@@ -40,44 +41,136 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    public void movePiece(Coordinate coor) {
-        int[] move = getMove(coor);
-
-        if (checkValidMove(move[0], move[1])) {
-            cur_coor = coor;
+    public void movePiece(Square square) {
+        if (checkValidMove(square)) {
+            cur_square.holdPiece(null);
+            square.holdPiece(this);
+            cur_square = square;
             if (!started) started = true;
         }
-        else {
-            Debug.Log("YOU CANT MOVE THERE: x:" + move[0] + " y: " + move[1]);
-        }
 
-        transform.position = new Vector3(cur_coor.pos.x, transform.position.y, cur_coor.pos.z);
+        break_directions.Clear();
+        transform.position = new Vector3(cur_square.coor.pos.x, transform.position.y, cur_square.coor.pos.z);
         transform.rotation = new Quaternion(0, 0, 0, 0);
     }
 
-    public void setStartCoor(Coordinate coor) {
-        cur_coor = coor;
+    public void setStartSquare(Square square) {
+        cur_square = square;
     }
 
-    public int[] getMove(Coordinate coor) {
-        int coor_x = (coor.x - cur_coor.x) * team;
-        int coor_y = (coor.y - cur_coor.y) * team;
+    public Coordinate getCoordinateMove(Square square) { 
+        int coor_x = (square.coor.x - cur_square.coor.x) * team;
+        int coor_y = (square.coor.y - cur_square.coor.y) * team;
 
-        return new int[] { coor_x, coor_y };
+        return new Coordinate(coor_x, coor_y);
     }
 
-    public bool checkValidMove(int coor_x, int coor_y) {
-        for (int i = 0; i < allowed_moves.Count ; i++) {
-            if (coor_x == allowed_moves[i].x && coor_y == allowed_moves[i].y) {
-                if (allowed_moves[i].type != MoveType.StartOnly) {
-                    return true;
+    public void addBreakPoint(Square square) {
+        Coordinate coor_move = getCoordinateMove(square);
+        for (int j = 0; j < allowed_moves.Count ; j++) {
+            if (coor_move.x == allowed_moves[j].x && coor_move.y == allowed_moves[j].y) {
+                switch (allowed_moves[j].type) {
+                    case MoveType.StartOnly:
+                    case MoveType.Move:
+                        if (square.holding_piece != null) break_directions.Add(coor_move);
+                        break;
+                    case MoveType.Eat:
+                    case MoveType.EatMove:
+                        if (square.holding_piece != null && square.holding_piece.team == team) break_directions.Add(coor_move);
+                        break;
                 }
-                else if (!started) {
-                    return true;
+            }
+        }   
+    }
+
+    public bool checkValidMove(Square square) {
+        Coordinate coor_move = getCoordinateMove(square);
+
+        for (int i = 0; i < allowed_moves.Count ; i++) {
+            if (coor_move.x == allowed_moves[i].x && coor_move.y == allowed_moves[i].y) {
+                switch (allowed_moves[i].type) {
+                    case MoveType.StartOnly:
+                        if (!started && checkCanMove(square)) 
+                            return true;
+                        break;
+                    case MoveType.Move:
+                        if (checkCanMove(square)) {
+                            return true;
+                        } 
+                        break;
+                    case MoveType.Eat:
+                        if (checkCanEat(square)) 
+                            return true;
+                        break;
+                    case MoveType.EatMove:
+                        if (checkCanEatMove(square)) 
+                            return true;
+                        break;
+                   case MoveType.EatMoveJump:
+                        if (checkCanEatMove(square)) 
+                            return true;
+                        break;
                 }
             }
         }
         return false;
+    }
+
+    private bool checkCanMove(Square square) {
+        Coordinate coor_move = getCoordinateMove(square);
+
+        if (square.holding_piece == null && checkMoveDirection(coor_move)) return true;
+        return false;
+    }
+
+    private bool checkCanEat(Square square) {
+        Coordinate coor_move = getCoordinateMove(square);
+
+        if (square.holding_piece != null && square.holding_piece.team != team && checkMoveDirection(coor_move)) return true;
+        return false;
+    }
+
+    private bool checkCanEatMove(Square square) {
+        if (!checkCanEat(square) && checkCanMove(square)) return true; 
+        return false;
+    }
+
+    private bool checkMoveDirection(Coordinate coor) {
+        for (int i = 0; i < break_directions.Count; i++) {
+            if (break_directions[i].x == 0 && coor.x == 0){
+                if (break_directions[i].y < 0 && (coor.y < break_directions[i].y)) {
+                    return false;
+                }
+                else if (break_directions[i].y > 0 && (coor.y > break_directions[i].y)) {
+                    return false;
+                }
+            }
+            else if (break_directions[i].y == 0 && coor.y == 0){
+                if (break_directions[i].x > 0 && (coor.x > break_directions[i].x)) {
+                    return false;
+                }
+                else if (break_directions[i].x < 0 && (coor.x < break_directions[i].x)) {
+                    return false;
+                }
+            }
+            else if (break_directions[i].y > 0 && (coor.y > break_directions[i].y)) {
+                if (break_directions[i].x > 0 && (coor.x > break_directions[i].x)) {
+                    return false;
+                }
+                else if (break_directions[i].x < 0 && (coor.x < break_directions[i].x)) {
+                    return false;
+                }
+            }
+            else if (break_directions[i].y < 0 && (coor.y < break_directions[i].y)){
+                if (break_directions[i].x > 0 && (coor.x > break_directions[i].x)) {
+                    return false;
+                }
+                else if (break_directions[i].x < 0 && (coor.x < break_directions[i].x)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private void addAllowedMove(int coor_x, int coor_y, MoveType type) {
@@ -114,10 +207,10 @@ public class Piece : MonoBehaviour {
         for (int coor_x = 1; coor_x < 3; coor_x++) {
             for (int coor_y = 1; coor_y < 3; coor_y++) {
                 if (coor_y != coor_x) {
-                    addAllowedMove(coor_x, coor_y, MoveType.EatMove);
-                    addAllowedMove(-coor_x, -coor_y, MoveType.EatMove);
-                    addAllowedMove(coor_x, -coor_y, MoveType.EatMove);
-                    addAllowedMove(-coor_x, coor_y, MoveType.EatMove);
+                    addAllowedMove(coor_x, coor_y, MoveType.EatMoveJump);
+                    addAllowedMove(-coor_x, -coor_y, MoveType.EatMoveJump);
+                    addAllowedMove(coor_x, -coor_y, MoveType.EatMoveJump);
+                    addAllowedMove(-coor_x, coor_y, MoveType.EatMoveJump);
                 }
             }
         }
