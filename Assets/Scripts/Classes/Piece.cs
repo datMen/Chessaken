@@ -9,12 +9,13 @@ public class Piece : MonoBehaviour {
     private Square cur_square;
     private bool started;
     private List<Coordinate> break_points = new List<Coordinate>();
+    private MoveType move_type;
 
     [SerializeField]
     private string piece_name;
 
     [SerializeField]
-    private int team; // Whites = -1, Blacks = 1
+    public int team; // Whites = -1, Blacks = 1
 
     void Start() {
         // Initialize valid moves
@@ -41,12 +42,21 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    public void movePiece(Square square) {
+    public void movePiece(Square square, Board board) {
         if (checkValidMove(square)) {
+            switch (move_type) {
+                case MoveType.Eat:
+                case MoveType.EatMove:
+                case MoveType.EatMoveJump:
+                    eatPiece(square.holding_piece);
+                    break;
+            }
+
             cur_square.holdPiece(null);
             square.holdPiece(this);
             cur_square = square;
             if (!started) started = true;
+            board.changeTurn();
         }
 
         break_points.Clear();
@@ -86,7 +96,8 @@ public class Piece : MonoBehaviour {
 
         for (int i = 0; i < allowed_moves.Count ; i++) {
             if (coor_move.x == allowed_moves[i].x && coor_move.y == allowed_moves[i].y) {
-                switch (allowed_moves[i].type) {
+                move_type = allowed_moves[i].type;
+                switch (move_type) {
                     case MoveType.StartOnly:
                         if (!started && checkCanMove(square)) 
                             return true;
@@ -101,10 +112,7 @@ public class Piece : MonoBehaviour {
                             return true;
                         break;
                     case MoveType.EatMove:
-                        if (checkCanEatMove(square)) 
-                            return true;
-                        break;
-                   case MoveType.EatMoveJump:
+                    case MoveType.EatMoveJump:
                         if (checkCanEatMove(square)) 
                             return true;
                         break;
@@ -112,6 +120,14 @@ public class Piece : MonoBehaviour {
             }
         }
         return false;
+    }
+
+    public void eatMe() {
+        Destroy(this.gameObject);
+    }
+
+    private void eatPiece(Piece piece) {
+        if (piece != null && piece.team != team) piece.eatMe();
     }
 
     private bool checkCanMove(Square square) {

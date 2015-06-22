@@ -7,17 +7,22 @@ public class Board : MonoBehaviour {
     private List<Square> hovered_squares = new List<Square>();
     private Square closest_square;
 
-    [SerializeField]
-    List<Square> squares = new List<Square>();
+    public int cur_turn = -1; // -1 = whites; 1 = blacks
 
     [SerializeField]
-    List<Piece> pieces = new List<Piece>();
+    MainCamera main_camera;
 
     [SerializeField]
     Material square_hover_mat;
 
     [SerializeField]
     Material square_closest_mat;
+
+    [SerializeField]
+    List<Square> squares = new List<Square>();
+
+    [SerializeField]
+    List<Piece> pieces = new List<Piece>();
 
     void Start() {
         addSquareCoordinates();
@@ -85,6 +90,11 @@ public class Board : MonoBehaviour {
             }
         }
         return square;
+    }
+
+    public void changeTurn() {
+        cur_turn = (cur_turn == -1) ? 1 : -1;
+        main_camera.changeTeam(cur_turn);
     }
 
     private void addSquareCoordinates() {
