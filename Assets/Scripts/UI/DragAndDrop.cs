@@ -16,6 +16,7 @@ class DragAndDrop : MonoBehaviour {
     void OnMouseDown() {
         if (board.cur_turn == this_piece.team) {
             distance = Vector3.Distance(transform.position, Camera.main.transform.position);
+            board.hoverValidSquares(transform.position, GetComponent<Piece>());
             dragging = true;
         }
     }
@@ -23,7 +24,7 @@ class DragAndDrop : MonoBehaviour {
     void OnMouseUp() {
         if (dragging) {
             Square closest_square = board.getClosestSquare(transform.position);
-            this_piece.movePiece(closest_square, board);
+            this_piece.movePiece(closest_square);
             board.resetHoveredSquares();
             dragging = false;
         }
@@ -37,7 +38,6 @@ class DragAndDrop : MonoBehaviour {
             transform.rotation = new Quaternion(0, 0, 0, 0);
 
             Square closest_square = board.getClosestSquare(transform.position);
-            board.hoverValidSquares(transform.position, GetComponent<Piece>());
             board.hoverClosestSquare(closest_square);
         }
     }

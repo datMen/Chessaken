@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Square : MonoBehaviour {
     private Material start_mat;
+    private Material cur_mat;
 
     public Coordinate coor;
     public Piece holding_piece = null;
@@ -22,7 +23,17 @@ public class Square : MonoBehaviour {
         renderer.material = mat;
     }
 
+    public void hoverSquare(Material mat) {
+        cur_mat = renderer.material;
+        renderer.material = mat;
+    }
+
+    public void unHoverSquare() {
+        renderer.material = cur_mat;
+    }
+
     public void resetMaterial() {
+        cur_mat = start_mat;
         renderer.material = start_mat;
     }
 }

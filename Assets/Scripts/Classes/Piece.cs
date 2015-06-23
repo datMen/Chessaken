@@ -11,10 +11,11 @@ public class Piece : MonoBehaviour {
     private Piece castling_tower;
 
     public bool started;
-     public Square cur_square;
+    public Square cur_square;
+    public Board board;
 
     [SerializeField]
-    private string piece_name;
+    public string piece_name;
 
     [SerializeField]
     public int team; // Whites = -1, Blacks = 1
@@ -47,16 +48,16 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    public void movePiece(Square square, Board board) {
+    public void movePiece(Square square) {
         if (checkValidMove(square)) {
             switch (move_type) {
                 case MoveType.StartOnly:
                     if (piece_name == "King" && checkCastling(square)) {
                         if (castling_tower.cur_square.coor.x == 0) {
-                            castling_tower.castleTower(castling_tower.cur_square.coor.x + 2, board);
+                            castling_tower.castleTower(castling_tower.cur_square.coor.x + 2);
                         }
                         else {
-                            castling_tower.castleTower(castling_tower.cur_square.coor.x - 3, board);
+                            castling_tower.castleTower(castling_tower.cur_square.coor.x - 3);
                         }
                     }
                     break;
@@ -79,7 +80,7 @@ public class Piece : MonoBehaviour {
         transform.rotation = new Quaternion(0, 0, 0, 0);
     }
 
-    public void castleTower(int coor_x, Board board) {
+    public void castleTower(int coor_x) {
         Coordinate castling_coor = new Coordinate(coor_x, cur_square.coor.y);
         Square square = board.getSquareFromCoordinate(castling_coor);
 
@@ -226,8 +227,9 @@ public class Piece : MonoBehaviour {
                     castling_tower = castling_towers[i];
                 }
             }
+            bool can_castle = board.checkCastlingSquares(cur_square, castling_tower.cur_square, team);
 
-            return (castling_tower.started) ? false : true;
+            return (!castling_tower.started && can_castle) ? true : false;
         }  
         else {
             return true;

@@ -54,8 +54,8 @@ public class Board : MonoBehaviour {
     }
 
     public void hoverClosestSquare(Square square) {
-        if (closest_square) closest_square.resetMaterial();
-        square.setMaterial(square_closest_mat);
+        if (closest_square) closest_square.unHoverSquare();
+        square.hoverSquare(square_closest_mat);
         closest_square = square;
     }
 
@@ -95,6 +95,34 @@ public class Board : MonoBehaviour {
     public void changeTurn() {
         cur_turn = (cur_turn == -1) ? 1 : -1;
         main_camera.changeTeam(cur_turn);
+        closest_square.resetMaterial();
+    }
+
+    public bool checkCastlingSquares(Square square1, Square square2, int castling_team) {
+        List<Square> castling_squares = new List<Square>();
+
+        if (square1.coor.x < square2.coor.x) {
+            for (int i = square1.coor.x; i < square2.coor.x; i++) {
+                Coordinate coor = new Coordinate(i, square1.coor.y);
+                castling_squares.Add(getSquareFromCoordinate(coor));
+            }
+        }
+        else {
+            for (int i = square1.coor.x; i > square2.coor.x; i--) {
+                Coordinate coor = new Coordinate(i, square1.coor.y);
+                castling_squares.Add(getSquareFromCoordinate(coor));
+            }
+        }
+        for (int i = 0; i < pieces.Count; i++) {
+            if (pieces[i].team != castling_team) {
+                addPieceBreakPoints(pieces[i]);
+                for (int j = 0; j < castling_squares.Count; j++) {
+                    if (pieces[i].checkValidMove(castling_squares[j])) return false;
+                }
+            }
+        }
+        
+        return true;
     }
 
     private void addSquareCoordinates() {
@@ -119,6 +147,7 @@ public class Board : MonoBehaviour {
             Square closest_square = getClosestSquare(pieces[i].transform.position);
             closest_square.holding_piece = pieces[i];
             pieces[i].setStartSquare(closest_square);
+            pieces[i].board = this;
         }
     }
 }
