@@ -7,7 +7,7 @@ public class MainCamera : MonoBehaviour {
 
     void Update() {
         if (changing_team) {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rotation, 0), Time.deltaTime * 10f);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rotation, 0), Time.deltaTime * 5f);
         }
     }
 

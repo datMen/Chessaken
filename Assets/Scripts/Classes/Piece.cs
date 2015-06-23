@@ -6,16 +6,21 @@ using System;
 
 public class Piece : MonoBehaviour {
     private List<Move> allowed_moves = new List<Move>();
-    private Square cur_square;
-    private bool started;
     private List<Coordinate> break_points = new List<Coordinate>();
     private MoveType move_type;
+    private Piece castling_tower;
+
+    public bool started;
+     public Square cur_square;
 
     [SerializeField]
     private string piece_name;
 
     [SerializeField]
     public int team; // Whites = -1, Blacks = 1
+
+    [SerializeField]
+    public List<Piece> castling_towers;
 
     void Start() {
         // Initialize valid moves
@@ -30,11 +35,11 @@ public class Piece : MonoBehaviour {
                 addHorseAllowedMoves();
                 break;
             case "Bishop":
-                addBishopAllowedMoves();
+                addDiagonalAllowedMoves();
                 break;
             case "Queen":
-                addTowerAllowedMoves();
-                addBishopAllowedMoves();
+                addLinealAllowedMoves();
+                addDiagonalAllowedMoves();
                 break;
             case "King":
                 addKingAllowedMoves();
@@ -45,6 +50,16 @@ public class Piece : MonoBehaviour {
     public void movePiece(Square square, Board board) {
         if (checkValidMove(square)) {
             switch (move_type) {
+                case MoveType.StartOnly:
+                    if (piece_name == "King" && checkCastling(square)) {
+                        if (castling_tower.cur_square.coor.x == 0) {
+                            castling_tower.castleTower(castling_tower.cur_square.coor.x + 2, board);
+                        }
+                        else {
+                            castling_tower.castleTower(castling_tower.cur_square.coor.x - 3, board);
+                        }
+                    }
+                    break;
                 case MoveType.Eat:
                 case MoveType.EatMove:
                 case MoveType.EatMoveJump:
@@ -64,6 +79,19 @@ public class Piece : MonoBehaviour {
         transform.rotation = new Quaternion(0, 0, 0, 0);
     }
 
+    public void castleTower(int coor_x, Board board) {
+        Coordinate castling_coor = new Coordinate(coor_x, cur_square.coor.y);
+        Square square = board.getSquareFromCoordinate(castling_coor);
+
+        cur_square.holdPiece(null);
+        square.holdPiece(this);
+        cur_square = square;
+        if (!started) started = true;
+
+        transform.position = new Vector3(cur_square.coor.pos.x, transform.position.y, cur_square.coor.pos.z);
+        transform.rotation = new Quaternion(0, 0, 0, 0);
+    }
+
     public void setStartSquare(Square square) {
         cur_square = square;
     }
@@ -77,6 +105,7 @@ public class Piece : MonoBehaviour {
 
     public void addBreakPoint(Square square) {
         Coordinate coor_move = getCoordinateMove(square);
+
         for (int j = 0; j < allowed_moves.Count ; j++) {
             if (coor_move.x == allowed_moves[j].x && coor_move.y == allowed_moves[j].y) {
                 switch (allowed_moves[j].type) {
@@ -99,7 +128,7 @@ public class Piece : MonoBehaviour {
                 move_type = allowed_moves[i].type;
                 switch (move_type) {
                     case MoveType.StartOnly:
-                        if (!started && checkCanMove(square)) 
+                        if (!started && checkCanMove(square) && checkCastling(square)) 
                             return true;
                         break;
                     case MoveType.Move:
@@ -187,6 +216,24 @@ public class Piece : MonoBehaviour {
         return true;
     }
 
+    private bool checkCastling(Square square) {
+        if (piece_name == "King") {
+            float closest_castling = Vector3.Distance(square.coor.pos, castling_towers[0].transform.position);
+            castling_tower = castling_towers[0];
+
+            for (int i = 0; i < castling_towers.Count; i++) {
+                if (Vector3.Distance(square.coor.pos, castling_towers[i].transform.position) <= closest_castling) {
+                    castling_tower = castling_towers[i];
+                }
+            }
+
+            return (castling_tower.started) ? false : true;
+        }  
+        else {
+            return true;
+        }
+    }
+
     private void addAllowedMove(int coor_x, int coor_y, MoveType type) {
         Move new_move = new Move(coor_x, coor_y, type);
         allowed_moves.Add(new_move);
@@ -200,6 +247,10 @@ public class Piece : MonoBehaviour {
     }
 
     private void addTowerAllowedMoves() {
+        addLinealAllowedMoves();
+    }
+
+    private void addLinealAllowedMoves() {
         for (int coor_x = 1; coor_x < 8; coor_x++) {
             addAllowedMove(coor_x, 0, MoveType.EatMove);
             addAllowedMove(0, coor_x, MoveType.EatMove);
@@ -208,7 +259,7 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    private void addBishopAllowedMoves() {
+    private void addDiagonalAllowedMoves() {
         for (int coor_x = 1; coor_x < 8; coor_x++) {
             addAllowedMove(coor_x, -coor_x, MoveType.EatMove);
             addAllowedMove(-coor_x, coor_x, MoveType.EatMove);
@@ -230,16 +281,19 @@ public class Piece : MonoBehaviour {
         }
     }
 
-    // @FIXME: King allowed positions algorithm
-    // [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]
     private void addKingAllowedMoves() {
-        // for (int coor_x = 0; coor_x < 2; coor_x++) {
-        //     for (int coor_y = 0; coor_y < 2; coor_y++) {
-        //         addAllowedMove(coor_x, coor_y, MoveType.EatMove);
-        //         addAllowedMove(-coor_x, -coor_y, MoveType.EatMove);
-        //         addAllowedMove(coor_x, -coor_y, MoveType.EatMove);
-        //         addAllowedMove(-coor_x, coor_y, MoveType.EatMove);
-        //     }
-        // }
+        // Castling moves
+        addAllowedMove(-2, 0, MoveType.StartOnly);
+        addAllowedMove(2, 0, MoveType.StartOnly);
+
+        // Normal moves
+        addAllowedMove(0, 1, MoveType.EatMove);
+        addAllowedMove(1, 1, MoveType.EatMove);
+        addAllowedMove(1, 0, MoveType.EatMove);
+        addAllowedMove(1, -1, MoveType.EatMove);
+        addAllowedMove(0, -1, MoveType.EatMove);
+        addAllowedMove(-1, -1, MoveType.EatMove);
+        addAllowedMove(-1, 0, MoveType.EatMove);
+        addAllowedMove(-1, 1, MoveType.EatMove);
     }
 }

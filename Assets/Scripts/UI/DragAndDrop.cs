@@ -33,7 +33,7 @@ class DragAndDrop : MonoBehaviour {
         if (dragging) {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Vector3 rayPoint = ray.GetPoint(distance);
-            transform.position = new Vector3(rayPoint.x - 0.5f, 2.5f, rayPoint.z - 0.7f);
+            transform.position = new Vector3(rayPoint.x - 0.5f, 2.7f, rayPoint.z - 0.5f);
             transform.rotation = new Quaternion(0, 0, 0, 0);
 
             Square closest_square = board.getClosestSquare(transform.position);
