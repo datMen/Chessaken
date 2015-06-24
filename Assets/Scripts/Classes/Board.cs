@@ -20,6 +20,12 @@ public class Board : MonoBehaviour {
     Material square_closest_mat;
 
     [SerializeField]
+    GameObject win_msg;
+
+    [SerializeField]
+    TextMesh win_txt;
+
+    [SerializeField]
     List<Square> squares = new List<Square>();
 
     [SerializeField]
@@ -98,8 +104,12 @@ public class Board : MonoBehaviour {
 
     public void changeTurn() {
         cur_turn = (cur_turn == -1) ? 1 : -1;
-        isCheckMate(cur_turn);
-        main_camera.changeTeam(cur_turn);
+        if (isCheckMate(cur_turn)) {
+            doCheckMate(cur_turn);
+        }
+        else {
+            main_camera.changeTeam(cur_turn);
+        }
     }
 
     public bool isCheckKing(int team) {
@@ -117,7 +127,7 @@ public class Board : MonoBehaviour {
         return false;
     }
 
-    public void isCheckMate(int team) {
+    public bool isCheckMate(int team) {
         if (isCheckKing(team)) {
             Piece king = getKingPiece(team);
             int valid_moves = 0;
@@ -130,9 +140,21 @@ public class Board : MonoBehaviour {
             }
 
             if (valid_moves == 0) {
-                Debug.Log("GAME FINISHED");
+                return true;
             }
         }
+        return false;
+    }
+
+    public void doCheckMate(int loser) {
+        string winner = (loser == 1) ? "White" : "Black";
+
+        win_txt.text = winner + win_txt.text;
+        int txt_rotation = (cur_turn == -1) ? 0 : 180;
+
+
+        win_msg.transform.rotation = Quaternion.Euler(0, txt_rotation, 0);
+        win_msg.GetComponent<Rigidbody>().useGravity = true;
     }
 
     public Piece getKingPiece(int team) {
