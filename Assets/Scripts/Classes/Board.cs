@@ -8,6 +8,7 @@ public class Board : MonoBehaviour {
     private Square closest_square;
 
     public int cur_turn = -1; // -1 = whites; 1 = blacks
+    public Dictionary<int, Piece> checking_pieces = new Dictionary<int, Piece>();
 
     [SerializeField]
     MainCamera main_camera;
@@ -59,17 +60,18 @@ public class Board : MonoBehaviour {
         closest_square = square;
     }
 
-    public void hoverValidSquares(Vector3 pos, Piece piece) {
+    public void hoverValidSquares(Piece piece) {
         addPieceBreakPoints(piece);
         for (int i = 0; i < squares.Count ; i++) {
             if (piece.checkValidMove(squares[i])) {
-                squares[i].setMaterial(square_hover_mat);
+                squares[i].hoverSquare(square_hover_mat);
                 hovered_squares.Add(squares[i]);
             }
         }
     }
 
     public void addPieceBreakPoints(Piece piece) {
+        piece.break_points.Clear();
         for (int i = 0; i < squares.Count ; i++) {
             piece.addBreakPoint(squares[i]);
         }
@@ -79,7 +81,9 @@ public class Board : MonoBehaviour {
         for (int i = 0; i < hovered_squares.Count ; i++) {
             hovered_squares[i].resetMaterial();
         }
+        hovered_squares.Clear();
         closest_square.resetMaterial();
+        closest_square = null;
     }
 
     public Square getSquareFromCoordinate(Coordinate coor) {
@@ -94,8 +98,50 @@ public class Board : MonoBehaviour {
 
     public void changeTurn() {
         cur_turn = (cur_turn == -1) ? 1 : -1;
+        isCheckMate(cur_turn);
         main_camera.changeTeam(cur_turn);
-        closest_square.resetMaterial();
+    }
+
+    public bool isCheckKing(int team) {
+        Piece king = getKingPiece(team);
+
+        for (int i = 0; i < pieces.Count; i++) {
+            if (pieces[i].team != king.team) {
+                addPieceBreakPoints(pieces[i]);
+                if (pieces[i].checkValidMove(king.cur_square)) {
+                    checking_pieces[team] = pieces[i];
+                    return true;
+                } 
+            }
+        }
+        return false;
+    }
+
+    public void isCheckMate(int team) {
+        if (isCheckKing(team)) {
+            Piece king = getKingPiece(team);
+            int valid_moves = 0;
+
+            addPieceBreakPoints(king);
+            for (int i = 0; i < squares.Count ; i++) {
+                if (king.checkValidMove(squares[i])) {
+                    valid_moves++;
+                }
+            }
+
+            if (valid_moves == 0) {
+                Debug.Log("GAME FINISHED");
+            }
+        }
+    }
+
+    public Piece getKingPiece(int team) {
+        for (int i = 0; i < pieces.Count; i++) {
+            if (pieces[i].team == team && pieces[i].piece_name == "King") {
+                return pieces[i];
+            }
+        }
+        return pieces[0];
     }
 
     public bool checkCastlingSquares(Square square1, Square square2, int castling_team) {
@@ -125,6 +171,37 @@ public class Board : MonoBehaviour {
         return true;
     }
 
+    public bool canInterceptCheckKing(Piece piece) {
+        addPieceBreakPoints(piece);
+        for (int i = 0; i < squares.Count ; i++) {
+            if (piece.checkValidMove(squares[i])) {
+                Piece old_holding_piece = squares[i].holding_piece;
+                Square old_square = piece.cur_square;
+                
+                piece.cur_square.holdPiece(null);
+                piece.cur_square = squares[i];
+                squares[i].holdPiece(piece);
+
+                if (!isCheckKing(piece.team) || (squares[i] == checking_pieces[piece.team].cur_square)) {
+                    squares[i].holdPiece(old_holding_piece);
+                    piece.cur_square = old_square;
+                    piece.cur_square.holdPiece(piece);
+                    return true;
+                }
+
+                piece.cur_square = old_square;
+                piece.cur_square.holdPiece(piece);
+                squares[i].holdPiece(old_holding_piece);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public void destroyPiece(Piece piece) {
+        pieces.Remove(piece);
+    }
+
     private void addSquareCoordinates() {
         int coor_x = 0;
         int coor_y = 0;
@@ -145,7 +222,7 @@ public class Board : MonoBehaviour {
     private void setStartPiecesCoor() {
         for (int i = 0; i < pieces.Count ; i++) {
             Square closest_square = getClosestSquare(pieces[i].transform.position);
-            closest_square.holding_piece = pieces[i];
+            closest_square.holdPiece(pieces[i]);
             pieces[i].setStartSquare(closest_square);
             pieces[i].board = this;
         }

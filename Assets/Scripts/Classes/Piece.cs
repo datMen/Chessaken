@@ -6,10 +6,10 @@ using System;
 
 public class Piece : MonoBehaviour {
     private List<Move> allowed_moves = new List<Move>();
-    private List<Coordinate> break_points = new List<Coordinate>();
     private MoveType move_type;
     private Piece castling_tower;
 
+    public List<Coordinate> break_points = new List<Coordinate>();
     public bool started;
     public Square cur_square;
     public Board board;
@@ -114,7 +114,9 @@ public class Piece : MonoBehaviour {
                     case MoveType.Move:
                     case MoveType.Eat:
                     case MoveType.EatMove:
-                        if (square.holding_piece != null) break_points.Add(coor_move);
+                        if (square.holding_piece != null) {
+                            break_points.Add(coor_move);
+                        } 
                         break;
                 }
             }
@@ -143,8 +145,12 @@ public class Piece : MonoBehaviour {
                         break;
                     case MoveType.EatMove:
                     case MoveType.EatMoveJump:
-                        if (checkCanEatMove(square)) 
-                            return true;
+                        if (checkCanEatMove(square)) {
+                            if (piece_name == "King")
+                                return true;
+                            else
+                                return true;
+                        }
                         break;
                 }
             }
@@ -152,7 +158,29 @@ public class Piece : MonoBehaviour {
         return false;
     }
 
+    public bool checkValidCheckKingMove(Square square) {
+        Piece old_holding_piece = square.holding_piece;
+        Square old_square = cur_square;
+        
+        cur_square.holdPiece(null);
+        cur_square = square;
+        square.holdPiece(this);
+
+        if (!board.isCheckKing(team) || (square == board.checking_pieces[team].cur_square)) {
+            square.holdPiece(old_holding_piece);
+            cur_square = old_square;
+            cur_square.holdPiece(this);
+            return true;
+        }
+
+        cur_square = old_square;
+        cur_square.holdPiece(this);
+        square.holdPiece(old_holding_piece);
+        return false;
+    }
+
     public void eatMe() {
+        board.destroyPiece(this);
         Destroy(this.gameObject);
     }
 
@@ -163,14 +191,14 @@ public class Piece : MonoBehaviour {
     private bool checkCanMove(Square square) {
         Coordinate coor_move = getCoordinateMove(square);
 
-        if (square.holding_piece == null && checkBreakPoint(coor_move)) return true;
+        if (square.holding_piece == null && checkBreakPoint(coor_move) && checkValidCheckKingMove(square)) return true;
         return false;
     }
 
     private bool checkCanEat(Square square) {
         Coordinate coor_move = getCoordinateMove(square);
 
-        if (square.holding_piece != null && square.holding_piece.team != team && checkBreakPoint(coor_move)) return true;
+        if (square.holding_piece != null && square.holding_piece.team != team && checkBreakPoint(coor_move) && checkValidCheckKingMove(square)) return true;
         return false;
     }
 
