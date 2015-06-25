@@ -1,13 +1,14 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
 
+/*
+==============================
+[Coordinate] - Board "local" coordinate
+==============================
+*/
 public class Coordinate {
     public int x;
     public int y;
-    public Transform position;
-    public Vector3 pos;
+    public Vector3 pos; // Transform position in the scene
 
     public Coordinate(int x, int y) {
         this.x = x;

@@ -2,17 +2,14 @@
 using System.Collections;
 
 public class MainCamera : MonoBehaviour {
-    private bool changing_team = false;
-    private float rotation;
+    private float rotation; // Euler's "y" rotation
 
     void Update() {
-        if (changing_team) {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rotation, 0), Time.deltaTime * 5f);
-        }
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rotation, 0), Time.deltaTime * 5f);
     }
 
     public void changeTeam(int team) {
+        // Set rotation depending of the current turn team
         rotation = (team == -1) ? 0 : 180;
-        changing_team = true;
     }
 }

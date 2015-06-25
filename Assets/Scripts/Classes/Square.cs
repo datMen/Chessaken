@@ -1,12 +1,16 @@
 using UnityEngine;
-using System.Collections;
 
+/*
+==============================
+[Square] - Script placed on every square in the board.
+==============================
+*/
 public class Square : MonoBehaviour {
-    private Material start_mat;
-    private Material cur_mat;
+    private Material start_mat; // Default material
+    private Material cur_mat; // Current material
 
-    public Coordinate coor;
-    public Piece holding_piece = null;
+    public Coordinate coor; // Square position in the board
+    public Piece holding_piece = null; // Current piece in this square
 
     [SerializeField]
     public Board board;
@@ -19,10 +23,11 @@ public class Square : MonoBehaviour {
         holding_piece = piece;
     }
 
-    public void setMaterial(Material mat) {
-        renderer.material = mat;
-    }
-
+    /*
+    ---------------
+    Materials related functions
+    ---------------
+    */ 
     public void hoverSquare(Material mat) {
         cur_mat = renderer.material;
         renderer.material = mat;
@@ -32,6 +37,7 @@ public class Square : MonoBehaviour {
         renderer.material = cur_mat;
     }
 
+    // Reset material to default
     public void resetMaterial() {
         cur_mat = start_mat;
         renderer.material = start_mat;

@@ -1,8 +1,9 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System;
 
+/*
+==============================
+[Move] - Piece move class
+==============================
+*/
 public class Move {
     public int x;
     public int y;
