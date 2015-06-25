@@ -129,13 +129,16 @@ public class Board : MonoBehaviour {
 
     public bool isCheckMate(int team) {
         if (isCheckKing(team)) {
-            Piece king = getKingPiece(team);
             int valid_moves = 0;
 
-            addPieceBreakPoints(king);
             for (int i = 0; i < squares.Count ; i++) {
-                if (king.checkValidMove(squares[i])) {
-                    valid_moves++;
+                for (int j = 0; j < pieces.Count; j++) {
+                    if (pieces[j].team == team) {
+                        addPieceBreakPoints(pieces[j]);
+                        if (pieces[j].checkValidMove(squares[i]) && (!isCheckKing(team) || pieces[j].piece_name == "King")) {
+                            valid_moves++;
+                        }
+                    }
                 }
             }
 

@@ -166,7 +166,7 @@ public class Piece : MonoBehaviour {
         cur_square = square;
         square.holdPiece(this);
 
-        if (!board.isCheckKing(team) || (square == board.checking_pieces[team].cur_square)) {
+        if (!board.isCheckKing(board.cur_turn) || (square == board.checking_pieces[team].cur_square)) {
             square.holdPiece(old_holding_piece);
             cur_square = old_square;
             cur_square.holdPiece(this);
