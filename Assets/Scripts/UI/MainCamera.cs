@@ -5,7 +5,7 @@ public class MainCamera : MonoBehaviour {
     private float rotation; // Euler's "y" rotation
 
     void Update() {
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rotation, 0), Time.deltaTime * 5f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, rotation, 0), Time.deltaTime * 4f);
     }
 
     public void changeTeam(int team) {

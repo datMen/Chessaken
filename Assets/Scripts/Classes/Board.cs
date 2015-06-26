@@ -14,6 +14,9 @@ public class Board : MonoBehaviour {
 
     public int cur_turn = -1; // -1 = whites; 1 = blacks
     public Dictionary<int, Piece> checking_pieces = new Dictionary<int, Piece>(); // Which piece is checking the king (key = team)
+    
+    // UI variables
+    public bool use_hover; // Hover valid moves & closest square
 
     [SerializeField]
     MainCamera main_camera;
@@ -249,5 +252,14 @@ public class Board : MonoBehaviour {
 
         win_msg.transform.rotation = Quaternion.Euler(0, txt_rotation, 0);
         win_msg.GetComponent<Rigidbody>().useGravity = true;
+    }
+
+    /*
+    ---------------
+    User Interface related functions
+    ---------------
+    */ 
+    public void useHover(bool use) {
+        use_hover = use;
     }
 }
