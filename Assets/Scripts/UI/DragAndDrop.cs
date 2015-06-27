@@ -23,7 +23,7 @@ class DragAndDrop : MonoBehaviour {
             Vector3 rayPoint = ray.GetPoint(distance);
 
             // Update piece's dragging position, we try to place it as close as we can to the mouse
-            transform.position = new Vector3(rayPoint.x - 0.5f, 0.1f, rayPoint.z);
+            transform.position = new Vector3(rayPoint.x - 0.5f, 2.7f, rayPoint.z);
             transform.rotation = new Quaternion(0, 0, 0, 0);
 
             // Hover the square this piece could go id we drop it

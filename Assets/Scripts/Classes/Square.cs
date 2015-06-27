@@ -6,11 +6,14 @@ using UnityEngine;
 ==============================
 */
 public class Square : MonoBehaviour {
-    private Material start_mat; // Default material
     private Material cur_mat; // Current material
 
     public Coordinate coor; // Square position in the board
     public Piece holding_piece = null; // Current piece in this square
+    public Material start_mat; // Default material
+
+    [SerializeField]
+    public int team;
 
     [SerializeField]
     public Board board;

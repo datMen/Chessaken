@@ -11,12 +11,14 @@ using System;
 public class Board : MonoBehaviour {
     private List<Square> hovered_squares = new List<Square>(); // List squares to hover
     private Square closest_square; // Current closest square when dragging a piece
+    private int cur_theme = 0;
 
     public int cur_turn = -1; // -1 = whites; 1 = blacks
     public Dictionary<int, Piece> checking_pieces = new Dictionary<int, Piece>(); // Which piece is checking the king (key = team)
     
     // UI variables
     public bool use_hover; // Hover valid moves & closest square
+    public bool rotate_camera; // Enable/disable camera rotation
 
     [SerializeField]
     MainCamera main_camera;
@@ -34,12 +36,22 @@ public class Board : MonoBehaviour {
     TextMesh win_txt;
 
     [SerializeField]
+    List<Theme> themes = new List<Theme>();
+
+    [SerializeField]
+    List<Renderer> board_sides = new List<Renderer>();
+
+    [SerializeField]
+    List<Renderer> board_corners = new List<Renderer>();
+
+    [SerializeField]
     List<Square> squares = new List<Square>(); // List of all game squares (64) - ordered
 
     [SerializeField]
     List<Piece> pieces = new List<Piece>(); // List of all pieces in the game (32)
 
     void Start() {
+        setBoardTheme();
         addSquareCoordinates(); // Add "local" coordinates to all squares
         setStartPiecesCoor(); // Update all piece's coordinate
     }
@@ -79,7 +91,7 @@ public class Board : MonoBehaviour {
     // Hover piece's closest square
     public void hoverClosestSquare(Square square) {
         if (closest_square) closest_square.unHoverSquare();
-        square.hoverSquare(square_closest_mat);
+        square.hoverSquare(themes[cur_theme].square_closest);
         closest_square = square;
     }
 
@@ -88,7 +100,7 @@ public class Board : MonoBehaviour {
         addPieceBreakPoints(piece);
         for (int i = 0; i < squares.Count ; i++) {
             if (piece.checkValidMove(squares[i])) {
-                squares[i].hoverSquare(square_hover_mat);
+                squares[i].hoverSquare(themes[cur_theme].square_hover);
                 hovered_squares.Add(squares[i]);
             }
         }
@@ -140,6 +152,9 @@ public class Board : MonoBehaviour {
         for (int i = 0; i < squares.Count ; i++) {
             squares[i].coor = new Coordinate(coor_x, coor_y);
             squares[i].coor.pos = new Vector3(squares[i].transform.position.x - 0.5f, squares[i].transform.position.y, squares[i].transform.position.z - 0.5f);
+            if (squares[i].team == -1) squares[i].renderer.material = themes[cur_theme].square_white;
+            else if (squares[i].team == 1) squares[i].renderer.material = themes[cur_theme].square_black;
+            squares[i].start_mat = squares[i].renderer.material;
 
             if (coor_y > 0 && coor_y % 7 == 0) {
                 coor_x++;
@@ -224,6 +239,23 @@ public class Board : MonoBehaviour {
             closest_square.holdPiece(pieces[i]);
             pieces[i].setStartSquare(closest_square);
             pieces[i].board = this;
+            if (pieces[i].team == -1) setPieceTheme(pieces[i].transform, themes[cur_theme].piece_white);
+            else if (pieces[i].team == 1) setPieceTheme(pieces[i].transform, themes[cur_theme].piece_black);
+        }
+    }
+
+    private void setPieceTheme(Transform piece_tr, Material mat) {
+        for (int i = 0; i < piece_tr.childCount; ++i) {
+            Transform child = piece_tr.GetChild(i);
+            try {
+                child.renderer.material = mat;
+            }
+            catch (Exception e) {
+                for (int j = 0; j < child.childCount; ++j) {
+                    Transform child2 = child.GetChild(j);
+                    child2.renderer.material = mat;
+                }
+            }
         }
     }
 
@@ -238,7 +270,7 @@ public class Board : MonoBehaviour {
         if (isCheckMate(cur_turn)) {
             doCheckMate(cur_turn);
         }
-        else {
+        else if(rotate_camera) {
             main_camera.changeTeam(cur_turn);
         }
     }
@@ -261,5 +293,30 @@ public class Board : MonoBehaviour {
     */ 
     public void useHover(bool use) {
         use_hover = use;
+    }
+
+    public void rotateCamera(bool rotate) {
+        rotate_camera = rotate;
+    }
+
+    public void setBoardTheme() {
+        for (int i = 0; i < board_sides.Count ; i++) {
+            board_sides[i].material = themes[cur_theme].board_side;
+            board_corners[i].material = themes[cur_theme].board_corner;
+        }
+    }
+
+    public void updateGameTheme(int theme) {
+        cur_theme = theme;
+        setBoardTheme();
+        for (int i = 0; i < pieces.Count ; i++) {
+            if (pieces[i].team == -1) setPieceTheme(pieces[i].transform, themes[cur_theme].piece_white);
+            else if (pieces[i].team == 1) setPieceTheme(pieces[i].transform, themes[cur_theme].piece_black);
+        }
+        for (int i = 0; i < squares.Count ; i++) {
+            if (squares[i].team == -1) squares[i].renderer.material = themes[cur_theme].square_white;
+            else if (squares[i].team == 1) squares[i].renderer.material = themes[cur_theme].square_black;
+            squares[i].start_mat = squares[i].renderer.material;
+        }
     }
 }
