@@ -152,9 +152,9 @@ public class Board : MonoBehaviour {
         for (int i = 0; i < squares.Count ; i++) {
             squares[i].coor = new Coordinate(coor_x, coor_y);
             squares[i].coor.pos = new Vector3(squares[i].transform.position.x - 0.5f, squares[i].transform.position.y, squares[i].transform.position.z - 0.5f);
-            if (squares[i].team == -1) squares[i].renderer.material = themes[cur_theme].square_white;
-            else if (squares[i].team == 1) squares[i].renderer.material = themes[cur_theme].square_black;
-            squares[i].start_mat = squares[i].renderer.material;
+            if (squares[i].team == -1) squares[i].GetComponent<Renderer>().material = themes[cur_theme].square_white;
+            else if (squares[i].team == 1) squares[i].GetComponent<Renderer>().material = themes[cur_theme].square_black;
+            squares[i].start_mat = squares[i].GetComponent<Renderer>().material;
 
             if (coor_y > 0 && coor_y % 7 == 0) {
                 coor_x++;
@@ -248,12 +248,12 @@ public class Board : MonoBehaviour {
         for (int i = 0; i < piece_tr.childCount; ++i) {
             Transform child = piece_tr.GetChild(i);
             try {
-                child.renderer.material = mat;
+                child.GetComponent<Renderer>().material = mat;
             }
             catch (Exception e) {
                 for (int j = 0; j < child.childCount; ++j) {
                     Transform child2 = child.GetChild(j);
-                    child2.renderer.material = mat;
+                    child2.GetComponent<Renderer>().material = mat;
                 }
             }
         }
@@ -314,9 +314,9 @@ public class Board : MonoBehaviour {
             else if (pieces[i].team == 1) setPieceTheme(pieces[i].transform, themes[cur_theme].piece_black);
         }
         for (int i = 0; i < squares.Count ; i++) {
-            if (squares[i].team == -1) squares[i].renderer.material = themes[cur_theme].square_white;
-            else if (squares[i].team == 1) squares[i].renderer.material = themes[cur_theme].square_black;
-            squares[i].start_mat = squares[i].renderer.material;
+            if (squares[i].team == -1) squares[i].GetComponent<Renderer>().material = themes[cur_theme].square_white;
+            else if (squares[i].team == 1) squares[i].GetComponent<Renderer>().material = themes[cur_theme].square_black;
+            squares[i].start_mat = squares[i].GetComponent<Renderer>().material;
         }
     }
 }

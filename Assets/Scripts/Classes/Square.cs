@@ -19,7 +19,7 @@ public class Square : MonoBehaviour {
     public Board board;
 
     void Start() {
-        start_mat = renderer.material;
+        start_mat = GetComponent<Renderer>().material;
     }
 
     public void holdPiece(Piece piece) {
@@ -32,17 +32,17 @@ public class Square : MonoBehaviour {
     ---------------
     */ 
     public void hoverSquare(Material mat) {
-        cur_mat = renderer.material;
-        renderer.material = mat;
+        cur_mat = GetComponent<Renderer>().material;
+        GetComponent<Renderer>().material = mat;
     }
 
     public void unHoverSquare() {
-        renderer.material = cur_mat;
+        GetComponent<Renderer>().material = cur_mat;
     }
 
     // Reset material to default
     public void resetMaterial() {
         cur_mat = start_mat;
-        renderer.material = start_mat;
+        GetComponent<Renderer>().material = start_mat;
     }
 }
