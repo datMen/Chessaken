@@ -1,7 +1,7 @@
 # Chessaken game
 ##### Project in Unity 3D
 ##### Author: Mencey Melgar(menceymelgar@gmail.com)
-##### Test the game at: [chessaken.com](http://chessaken.com/)
+##### Test the game at: [menceymelgar.com/chessaken.com/](http://menceymelgar.com/chessaken.com/)
 =
 ### Description
 
